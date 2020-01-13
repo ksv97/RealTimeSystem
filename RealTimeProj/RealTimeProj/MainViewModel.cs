@@ -79,16 +79,25 @@ namespace RealTimeProj
         private double _previousConsumption, _previousConsumption1, _previousConsumption2, _previousConsumption3;
         private double _KP, _Tu, _T;
 
-        private int step = 0;
+        private int step = 0;		
 
-		private double currentErrorKoef = -0.249;
-		private double prevError1Koef = 0.72624;
-		private double prevError2Koef = -0.7056;
-		private double prevError3Koef = 0.228366;
-		private double prevConsumption1Koef = 3.63523;
-		private double prevConsumption2Koef = -3.524699;
-		private double prevConsumption3Koef = 1.138472;		
-		private double denominator = 1.249; 
+		private double currentErrorKoef = 2.75403;
+		private double prevError1Koef = -8.0317597;
+		private double prevError2Koef = 7.80274;
+		private double prevError3Koef = -2.525015;
+		private double prevConsumption1Koef = 1.2364 * Math.Pow(10, 12);
+		private double prevConsumption2Koef = -9.12279 * Math.Pow(10, 12);
+		private double prevConsumption3Koef = -3.241412;		
+		private double denominator = -1.75403;
+
+		/* double next = (2.75403 * currentError 
+		 * - 8.0317597 * _previousError1 
+		 * + 7.80274 * _previousError2 
+		 * - 2.525015 * _previousError3 
+		 * + (1.2364) * Math.Pow(10,13) * _previousConsumption1 
+		 - 9.12279 * Math.Pow(10,12) * _previousConsumption2 
+		 - 3.241412 * _previousConsumption3) / (-1.75403);
+		 */
 
 		public MainViewModel()
         {
@@ -155,6 +164,8 @@ namespace RealTimeProj
 			_previousError1 = currentError;
 			_previousConsumption1 = next;
 
+
+			
 			//var next = _previousConsumption/100 + x * currentError - x2 * _previousError;
 			//0.0000000000000389
 			//double next = 0.0000000000000000389 * (currentError - (1.66062 * _previousError1) + (0.6714666 * _previousError2) - (0.0031989 * _previousError3)) - 2 * _previousConsumption1 + 2.861209 * _previousConsumption2 + 0.138791 * _previousConsumption3;
