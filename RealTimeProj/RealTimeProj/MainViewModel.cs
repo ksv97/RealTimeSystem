@@ -81,7 +81,16 @@ namespace RealTimeProj
 
         private int step = 0;
 
-        public MainViewModel()
+		private double currentErrorKoef = -0.249;
+		private double prevError1Koef = 0.72624;
+		private double prevError2Koef = -0.7056;
+		private double prevError3Koef = 0.228366;
+		private double prevConsumption1Koef = 3.63523;
+		private double prevConsumption2Koef = -3.524699;
+		private double prevConsumption3Koef = 1.138472;		
+		private double denominator = 1.249; 
+
+		public MainViewModel()
         {
             PlotModel = new PlotModel() { Title = "Function visualisation" };
             this.PlotModel.Series.Add(new LineSeries());
@@ -114,29 +123,62 @@ namespace RealTimeProj
             this.PlotModel.InvalidatePlot(true);
         }
 
-        private CommandHandler addCommand;
-        public CommandHandler AddCommand { get { return addCommand ?? (addCommand = new CommandHandler(obj => { Input++; })); } }
+		private double NextConsumption(double currentObjectOutput)
+		{
+			var currentError = desiredValue - currentObjectOutput;
+			var next = _KP * currentError + (_Tu * _T - _KP) * _previousError + _previousConsumption;
 
-        private CommandHandler addDesiredValue;
-        public CommandHandler AddDesiredValue { get { return addDesiredValue ?? (addDesiredValue = new CommandHandler(obj => { DesiredValue++; })); } }
+			_previousError = currentError;
+			_previousConsumption = next;
 
-        private CommandHandler decreaseDesiredValue;
-        public CommandHandler DecreaseDesiredValue { get { return decreaseDesiredValue ?? (decreaseDesiredValue = new CommandHandler(obj => { DesiredValue--; })); } }
+			return next;
+		}
 
-        private CommandHandler decreaseCommand;
+		private double NextConsumptionPolinom(double currentObjectOutput)
+		{
+			var currentError = desiredValue - currentObjectOutput;
+			
+			double next = (currentErrorKoef * currentError 
+				+ prevError1Koef * _previousError1 
+				+ prevError2Koef * _previousError2 
+				+ prevError3Koef * _previousError3 
+				+ prevConsumption1Koef * _previousConsumption1 
+				+ prevConsumption2Koef * _previousConsumption2 
+				+ prevConsumption3Koef * _previousConsumption3) / denominator;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+			_previousConsumption3 = _previousConsumption2;
+			_previousError3 = _previousError2;
 
-        public CommandHandler DecreaseCommand { get { return decreaseCommand ?? (decreaseCommand = new CommandHandler(obj => { Input--; })); } }
+			_previousError2 = _previousError1;
+			_previousConsumption2 = _previousConsumption1;
 
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-            }
-        }
+			_previousError1 = currentError;
+			_previousConsumption1 = next;
 
+			//var next = _previousConsumption/100 + x * currentError - x2 * _previousError;
+			//0.0000000000000389
+			//double next = 0.0000000000000000389 * (currentError - (1.66062 * _previousError1) + (0.6714666 * _previousError2) - (0.0031989 * _previousError3)) - 2 * _previousConsumption1 + 2.861209 * _previousConsumption2 + 0.138791 * _previousConsumption3;
+			//double next = 0.1 * (currentError - (1.66062 * _previousError1) + (0.6714666 * _previousError2) - (0.0031989 * _previousError3)) - 2 * _previousConsumption1 + 2.861209 * _previousConsumption2 + 0.138791 * _previousConsumption3;
+
+			//double next = (currentError - 3289.6606 * _previousError + 5460.7899 * _previousError1 - 2207.3385 * _previousError2 + 10.0817 * _previousError3 + 6.4024 * _previousConsumption - 1.7135 * _previousConsumption1 + 0.0361 * _previousConsumption2)/ 4.725;
+			//double next = (1.2583 * currentError - 0.6022 * _previousError1 - 0.656 * _previousError2 + 4.8317 * _previousConsumption1 - 4.6949 * _previousConsumption2 + 1.5195 * _previousConsumption3) / 1.2583;
+			//double next = (-3.239 * currentError + 4.8179 * _previousError1 - 0.3047 * _previousError2 - 1.2764 * _previousError3 + 12.3652 * _previousConsumption1 - 12.01498 * _previousConsumption2 + 3.8888 * _previousConsumption3) / 4.239;
+			//double next = (1.506 * currentError - 2.384 * _previousError1 + 0.4174 * _previousError2 + 0.4615 * _previousError3 - 1.473 * _previousConsumption1 + 1.4284 * _previousConsumption2 - 0.4615 * _previousConsumption3) / (-0.506);
+			//double next = (166.112957 * currentError - 484.49169 * _previousError1 + 470.7262 * _previousError2 - 152.34746 * _previousError3 - 480.5629 * _previousConsumption1 + 465.951556 * _previousConsumption2 - 150.5016 * _previousConsumption3) / (-165.112957);
+			//_previousError3 = _previousError2;
+			//_previousConsumption2 = _previousConsumption1;
+
+			//_previousError2 = _previousError1;
+			//_previousConsumption1 = _previousConsumption;
+
+			//_previousError1 = _previousError;
+
+			//_previousError = currentError;
+			//_previousConsumption = next;
+
+			return next;
+		}
+		
         private void Tick(object obj)
         {
             double objOutput = 0;
@@ -168,59 +210,31 @@ namespace RealTimeProj
             step++;
         }
 
-        private double NextConsumption(double currentObjectOutput)
-        {
-            var currentError = desiredValue - currentObjectOutput;
-            var next = _KP * currentError + (_Tu * _T - _KP) * _previousError + _previousConsumption;
+		private CommandHandler addCommand;
+		public CommandHandler AddCommand { get { return addCommand ?? (addCommand = new CommandHandler(obj => { Input++; })); } }
 
-            _previousError = currentError;
-            _previousConsumption = next;
+		private CommandHandler addDesiredValue;
+		public CommandHandler AddDesiredValue { get { return addDesiredValue ?? (addDesiredValue = new CommandHandler(obj => { DesiredValue++; })); } }
 
-            return next;
-        }
+		private CommandHandler decreaseDesiredValue;
+		public CommandHandler DecreaseDesiredValue { get { return decreaseDesiredValue ?? (decreaseDesiredValue = new CommandHandler(obj => { DesiredValue--; })); } }
 
-        private double NextConsumptionPolinom(double currentObjectOutput)
-        {
-            var currentError = desiredValue - currentObjectOutput;
+		private CommandHandler decreaseCommand;
 
-            //var x = 6;
-            //var x2 = 0.02;
+		public event PropertyChangedEventHandler PropertyChanged;
 
-            //var next = _previousConsumption/100 + x * currentError - x2 * _previousError;
-            //0.0000000000000389
-            //double next = 0.0000000000000000389 * (currentError - (1.66062 * _previousError1) + (0.6714666 * _previousError2) - (0.0031989 * _previousError3)) - 2 * _previousConsumption1 + 2.861209 * _previousConsumption2 + 0.138791 * _previousConsumption3;
-            //double next = 0.1 * (currentError - (1.66062 * _previousError1) + (0.6714666 * _previousError2) - (0.0031989 * _previousError3)) - 2 * _previousConsumption1 + 2.861209 * _previousConsumption2 + 0.138791 * _previousConsumption3;
+		public CommandHandler DecreaseCommand { get { return decreaseCommand ?? (decreaseCommand = new CommandHandler(obj => { Input--; })); } }
 
-            //double next = (currentError - 3289.6606 * _previousError + 5460.7899 * _previousError1 - 2207.3385 * _previousError2 + 10.0817 * _previousError3 + 6.4024 * _previousConsumption - 1.7135 * _previousConsumption1 + 0.0361 * _previousConsumption2)/ 4.725;
-            //double next = (1.2583 * currentError - 0.6022 * _previousError1 - 0.656 * _previousError2 + 4.8317 * _previousConsumption1 - 4.6949 * _previousConsumption2 + 1.5195 * _previousConsumption3) / 1.2583;
-            //double next = (-3.239 * currentError + 4.8179 * _previousError1 - 0.3047 * _previousError2 - 1.2764 * _previousError3 + 12.3652 * _previousConsumption1 - 12.01498 * _previousConsumption2 + 3.8888 * _previousConsumption3) / 4.239;
-            //double next = (1.506 * currentError - 2.384 * _previousError1 + 0.4174 * _previousError2 + 0.4615 * _previousError3 - 1.473 * _previousConsumption1 + 1.4284 * _previousConsumption2 - 0.4615 * _previousConsumption3) / (-0.506);
-            //double next = (166.112957 * currentError - 484.49169 * _previousError1 + 470.7262 * _previousError2 - 152.34746 * _previousError3 - 480.5629 * _previousConsumption1 + 465.951556 * _previousConsumption2 - 150.5016 * _previousConsumption3) / (-165.112957);
-            double next = ((-0.249) * currentError + 0.72624 * _previousError1 - 0.7056 * _previousError2 + 0.228366 * _previousError3 + 3.63523 * _previousConsumption1 - 3.524699 * _previousConsumption2 + 1.138472 * _previousConsumption3) / 1.249;
+		public void OnPropertyChanged([CallerMemberName] string prop = "")
+		{
+			if (PropertyChanged != null)
+			{
+				PropertyChanged(this, new PropertyChangedEventArgs(prop));
+			}
+		}
 
-            _previousConsumption3 = _previousConsumption2;
-            _previousError3 = _previousError2;
 
-            _previousError2 = _previousError1;
-            _previousConsumption2 = _previousConsumption1;
-
-            _previousError1 = currentError;
-            _previousConsumption1 = next;
-            //_previousError3 = _previousError2;
-            //_previousConsumption2 = _previousConsumption1;
-
-            //_previousError2 = _previousError1;
-            //_previousConsumption1 = _previousConsumption;
-
-            //_previousError1 = _previousError;
-
-            //_previousError = currentError;
-            //_previousConsumption = next;
-
-            return next;
-        }
-
-        private void EmptyStep(double currentObjectOutput)
+		private void EmptyStep(double currentObjectOutput)
         {
             _previousError = desiredValue - currentObjectOutput;
             _previousConsumption = Input;

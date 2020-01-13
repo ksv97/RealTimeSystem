@@ -16,12 +16,12 @@
         <Border BorderBrush="Red" BorderThickness="2" Height="344" Width="572" Canvas.Left="10" Canvas.Top="40">
             <oxy:PlotView Model="{Binding PlotModel}" />
         </Border>
-        <TextBox x:Name="inputTextBox" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Left="79" Canvas.Top="387" Height="21" Width="83">
+        <TextBox x:Name="inputTextBox" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Left="592" Canvas.Top="192" Height="21" Width="83">
 
         </TextBox>
-        <TextBlock Text="Вход" FontSize="15" Canvas.Left="24" Canvas.Top="388"/>
-        <Button Name="PlusButton" Content="+" Width="50" Canvas.Left="170" Canvas.Top="388" Command="{ Binding AddCommand }" />
-        <Button Name="MinusButton" Content="-" Width="50" Canvas.Left="230" Canvas.Top="388" Command="{ Binding DecreaseCommand }" />
+        <TextBlock Text="Вход" FontSize="15" Canvas.Left="592" Canvas.Top="167"/>
+        <Button Name="PlusButton" Content="+" Width="50" Canvas.Left="592" Canvas.Top="218" Command="{ Binding AddCommand }" />
+        <Button Name="MinusButton" Content="-" Width="50" Canvas.Left="647" Canvas.Top="218" Command="{ Binding DecreaseCommand }" />
 
         <CheckBox Name="Autoregulation" Content="Авторегуляция" Canvas.Left="592" Canvas.Top="40" IsChecked="{Binding AutoRegulated, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <StackPanel x:Name="stackPanel" Canvas.Left="610" Canvas.Top="60" >
