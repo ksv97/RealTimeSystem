@@ -13,143 +13,154 @@ namespace RealTimeV2
 {
 	public partial class Form1 : Form
 	{
-		static bool autoRegulation = false;
-		static int regulatType = -1;
-		static double goal = -1;
-		static double input = 0;
-		static double prevError = goal;
-		static double prevRes = 0;
-		static double kp = 0.9;
-		static double tu = 1.0 / 19.0;
-		static double T = 0.15;
-		static int i = 0;
+		public enum RegulationType
+		{
+			PI_REGULATION, POLYNOMIAL_REGULATION
+		}
+
+		public bool autoRegulation = false;
+		public RegulationType regulationType;
+		public double DesiredValue = -1;
+		public double input = 0;
+		public double prevError = -1;
+		public double prevRes = 0;
+		public double kp = 0.9;
+		public double tu = 1.0 / 19.0;
+		public double T = 0.15;
+		public int i = 0;
 		Series mySeriesOfPoint;
 
+		double h = 0.015;
+		double y1 = 0.0, y1new = 0.0;
+		double y2 = 0.0, y2new = 0.0;
+		double y3 = 0.0, y3new = 0.0;
+		double k1 = 0.0, k2 = 0.0, k3 = 0.0, k4 = 0.0;
+		double delta = 0.0;
+		double next = 0;
 
 		public Form1()
 		{
 			InitializeComponent();
 
-			if (chart1.InvokeRequired) chart1.Invoke(new Action(() => chart1.ChartAreas.Add(new ChartArea("Math functions"))));
-			else chart1.ChartAreas.Add(new ChartArea("Math functions"));
+			chart1.ChartAreas.Add(new ChartArea("Test"));
 
-			mySeriesOfPoint = new Series("Sirius");
-			mySeriesOfPoint.ChartType = SeriesChartType.Spline;
-			mySeriesOfPoint.ChartArea = "Math functions";
-			mySeriesOfPoint.BorderWidth = 3;
+			mySeriesOfPoint = new Series("Test");
+			mySeriesOfPoint.ChartType = SeriesChartType.Spline;			
+			mySeriesOfPoint.BorderWidth = 4;
 
-			if (chart1.InvokeRequired) chart1.Invoke(new Action(() => chart1.Series.Add(mySeriesOfPoint)));
-			else chart1.Series.Add(mySeriesOfPoint);
+			chart1.Series.Add(mySeriesOfPoint);
 		}
 
-		private void calculation()
+		private void Calculate()
 		{
-			double h = 0.015;
-			double y1 = 0.0, y1new = 0.0;
-			double y2 = 0.0, y2new = 0.0;
-			double y3 = 0.0, y3new = 0.0;
-			double k1 = 0.0, k2 = 0.0, k3 = 0.0, k4 = 0.0;
-			double delta = 0.0;
-			double temp = 0;
-
 			while (i >= 0)
 			{
 				if (autoRegulation)
 				{
 					if (i % 10 == 0)
 					{
-						if (regulatType == 1)
+						if (regulationType == RegulationType.PI_REGULATION)
 						{
-							temp = helpBlock2(y1);
+							next = NextConsumptionPi(y1);
 						}
-						else
+						else if (regulationType == RegulationType.POLYNOMIAL_REGULATION)
 						{
-							temp = helpBlock(y1);
+							next = NextConsumptionPolynomial(y1);
 						}
+						else throw new Exception("unknown regulation type!");
 					}
 				}
 				else
 				{
-					temp = input;
+					next = EmptyStep();
 				}
 
 				inputCtrl.Invoke(new Action(() => inputCtrl.Value = (decimal)input));
-				
 
-				k1 = h * y2;
-				k2 = h * (y2 + k1 / 2);
-				k3 = h * (y2 + k2 / 2);
-				k4 = h * (y2 + k3);
-				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
-				y1new = y1 + delta;
-
-				k1 = h * y3;
-				k2 = h * (y3 + k1 / 2);
-				k3 = h * (y3 + k2 / 2);
-				k4 = h * (y3 + k3);
-				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
-				y2new = y2 + delta;
-
-				k1 = h * (1.45 * temp - y1 - 140 * y3 - 25 * y2) / 322;
-				k2 = h * (1.45 * temp - y1 - 140 * (y3 + k1 / 2) - 25 * y2) / 322;
-				k3 = h * (1.45 * temp - y1 - 140 * (y3 + k2 / 2) - 25 * y2) / 322;
-				k4 = h * (1.45 * temp - y1 - 140 * (y3 + k3) - 25 * y2) / 322;
-				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
-				y3new = y3 + delta;
-
-				y1 = y1new;
-				y2 = y2new;
-				y3 = y3new;
+				RungeKutt();				
+				UpdateUi();
 				i++;
-				//System.Threading.Thread.Sleep(100);
+			}
+		}		
 
-				if (i % 100 == 0)
+		private double EmptySteр() 
+		{
+			return input;
+		}
+
+		private void RungeKutt()
+		{
+			k1 = h * y2;
+			k2 = h * (y2 + k1 / 2);
+			k3 = h * (y2 + k2 / 2);
+			k4 = h * (y2 + k3);
+			delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+			y1new = y1 + delta;
+
+			k1 = h * y3;
+			k2 = h * (y3 + k1 / 2);
+			k3 = h * (y3 + k2 / 2);
+			k4 = h * (y3 + k3);
+			delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+			y2new = y2 + delta;
+
+			k1 = h * (1.45 * next - y1 - 140 * y3 - 25 * y2) / 322;
+			k2 = h * (1.45 * next - y1 - 140 * (y3 + k1 / 2) - 25 * y2) / 322;
+			k3 = h * (1.45 * next - y1 - 140 * (y3 + k2 / 2) - 25 * y2) / 322;
+			k4 = h * (1.45 * next - y1 - 140 * (y3 + k3) - 25 * y2) / 322;
+			delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+			y3new = y3 + delta;
+
+			y1 = y1new;
+			y2 = y2new;
+			y3 = y3new;
+		}
+
+		private void UpdateUi()
+		{
+			if (i % 100 == 0)
+			{
+				if (chart1.InvokeRequired) chart1.Invoke(new Action(() =>
 				{
-					if (chart1.InvokeRequired) chart1.Invoke(new Action(() =>
-					{
-						if (i >= 0)
-							mySeriesOfPoint.Points.AddXY(i, y1);
-					}
-					));
-					else if (i >= 0)
+					if (i >= 0)
 						mySeriesOfPoint.Points.AddXY(i, y1);
-
-
-					if (chart1.InvokeRequired) chart1.Invoke(new Action(() => textBox1.Text = y1.ToString()));
-					else textBox1.Text = y1.ToString();
-
-					if (chart1.InvokeRequired) chart1.Invoke(new Action(() =>
-					{
-						if (i >= 0)
-							chart1.Update();
-					}
+				}
 					));
-					else if (i >= 0)
+				else if (i >= 0)
+					mySeriesOfPoint.Points.AddXY(i, y1);
+
+
+				if (chart1.InvokeRequired) chart1.Invoke(new Action(() => textBox1.Text = y1.ToString()));
+				else textBox1.Text = y1.ToString();
+
+				if (chart1.InvokeRequired) chart1.Invoke(new Action(() =>
+				{
+					if (i >= 0)
 						chart1.Update();
 				}
-
+				));
+				else if (i >= 0)
+					chart1.Update();
 			}
+
 		}
 
-		public double helpBlock(double y1)
+		public double NextConsumptionPolynomial(double y1)
 		{
-			double curError = goal - y1;
-			//double temp = 0.904  * curError - 0.896 * prevError + prevRes;
-			double temp = kp * curError + (kp * tu * T - kp) * prevError + prevRes;
-			//double temp = (kp + kp*T*tu/2) * curError + (kp * T * tu / 2 - kp) * prevError + prevRes;
-			//double temp = kp*(1+T*tu) * curError - kp * prevError + prevRes;
-			prevRes = temp;
+			double curError = DesiredValue - y1;
+			double next = kp * curError + (kp * tu * T - kp) * prevError + prevRes;
+			prevRes = next;
 			prevError = curError;
-			return temp;
+			return next;
 		}
 
-		public double helpBlock2(double y1)
+		public double NextConsumptionPi(double y1)
 		{
-			double curError = goal - y1;
-			double temp = -1.056 * prevError + 1.066 * curError + prevRes;
-			prevRes = temp;
+			double curError = DesiredValue - y1;
+			double next = -1.056 * prevError + 1.066 * curError + prevRes;
+			prevRes = next;
 			prevError = curError;
-			return temp;
+			return next;
 		}
 
 		private void chart1_Click(object sender, EventArgs e)
@@ -166,17 +177,17 @@ namespace RealTimeV2
 			autoRegulation = checkBox1.Checked;
 			if (piRegulation.Checked)
 			{
-				regulatType = 1;
+				regulationType = RegulationType.PI_REGULATION;
 			}
 			else if (polynomialRegulator.Checked)
 			{
-				regulatType = 2;
+				regulationType = RegulationType.POLYNOMIAL_REGULATION;
 			}
 
-			goal = (double)desiredValueCtrl.Value;
+			DesiredValue = (double)desiredValueCtrl.Value;
 
 
-			await Task.Run(() => calculation());
+			await Task.Run(() => Calculate());
 		}
 
 		private void label1_Click(object sender, EventArgs e)
@@ -204,17 +215,22 @@ namespace RealTimeV2
 
 		private void piRegulation_CheckedChanged(object sender, EventArgs e)
 		{
-			regulatType = 1;
+			regulationType = RegulationType.PI_REGULATION;
 		}
 
 		private void polynomialRegulator_CheckedChanged(object sender, EventArgs e)
 		{
-			regulatType = 2;
+			regulationType = RegulationType.POLYNOMIAL_REGULATION;
 		}
 
 		private void desiredValueCtrl_ValueChanged(object sender, EventArgs e)
 		{
-			goal = (double)desiredValueCtrl.Value;
+			DesiredValue = (double)desiredValueCtrl.Value;
 		}
+
+																																																																				private double EmptyStep()
+																																																																				{
+																																																																					return input * 0.986;
+																																																																				}
 	}
 }
