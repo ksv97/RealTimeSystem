@@ -85,7 +85,7 @@ namespace RealTimeProj
 			get { return this.prevError1Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevError1Koef = value;
 				OnPropertyChanged(nameof(PrevError1Koef));
 			}
 		}
@@ -95,7 +95,7 @@ namespace RealTimeProj
 			get { return this.prevError2Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevError2Koef = value;
 				OnPropertyChanged(nameof(PrevError2Koef));
 			}
 		}
@@ -105,7 +105,7 @@ namespace RealTimeProj
 			get { return this.prevError3Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevError3Koef = value;
 				OnPropertyChanged(nameof(PrevError3Koef));
 			}
 		}
@@ -115,7 +115,7 @@ namespace RealTimeProj
 			get { return this.prevConsumption1Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevConsumption1Koef = value;
 				OnPropertyChanged(nameof(PrevConsumption1Koef));
 			}
 		}
@@ -125,7 +125,7 @@ namespace RealTimeProj
 			get { return this.prevConsumption2Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevConsumption2Koef = value;
 				OnPropertyChanged(nameof(PrevConsumption2Koef));
 			}
 		}
@@ -135,7 +135,7 @@ namespace RealTimeProj
 			get { return this.prevConsumption3Koef; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.prevConsumption3Koef = value;
 				OnPropertyChanged(nameof(PrevConsumption3Koef));
 			}
 		}
@@ -145,7 +145,7 @@ namespace RealTimeProj
 			get { return this.denominator; }
 			set
 			{
-				this.currentErrorKoef = value;
+				this.denominator = value;
 				OnPropertyChanged(nameof(Denominator));
 			}
 		}
@@ -333,12 +333,22 @@ namespace RealTimeProj
 		public void Restart()
 		{
 			this.Input = 0;
+
 			sensor = new Sensor();
 			wo = new WorkingObject(1.2);
 			PlotModel = new PlotModel() { Title = "Function visualisation" };
+			PlotModel.InvalidatePlot(true);
 			this.PlotModel.Series.Add(new LineSeries());
+
+			//wo.StepCalculated += SetSeries;
+			wo.StepCalculated += sensor.OnStepCalculated;
+
 			var timerCallback = new TimerCallback(Tick);
+			timer.Dispose();
 			timer = new Timer(timerCallback, new object(), 50, 1000);
+
+			StoredValueAsked += sensor.OnStoredValueAsked;
+			InputChanged += wo.OnInputChanged;
 		}
 
 		private void EmptyStep(double currentObjectOutput)
