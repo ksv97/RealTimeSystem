@@ -78,6 +78,7 @@ namespace RealTimeProj
 		private double _previousError = 0;
 		private double _previousConsumption;
         private double _KP, _Tu, _T;
+		private int i = 0;
 
         private int step = 0;		
 
@@ -86,14 +87,7 @@ namespace RealTimeProj
             PlotModel = new PlotModel() { Title = "Function visualisation" };
             this.PlotModel.Series.Add(new LineSeries());
 
-            //wo.StepCalculated += SetSeries;
-            wo.StepCalculated += sensor.OnStepCalculated;
-
-            var timerCallback = new TimerCallback(Tick);
-            timer = new Timer(timerCallback, new object(), 50, 1000);
-
-            StoredValueAsked += sensor.OnStoredValueAsked;
-            InputChanged += wo.OnInputChanged;
+            //wo.StepCalculated += SetSeries
 
             this.DesiredValue = 2;
 
@@ -181,6 +175,75 @@ namespace RealTimeProj
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public CommandHandler DecreaseCommand { get { return decreaseCommand ?? (decreaseCommand = new CommandHandler(obj => { Input--; })); } }
+
+		private CommandHandler startCommand;
+
+		public CommandHandler StartCommand { get { return startCommand ?? (startCommand = new CommandHandler(o => await Task.Run(this.Start())); } }
+
+		public async void Start()
+		{
+			double h = 0.015;
+			double y1 = 0.0, y1new = 0.0;
+			double y2 = 0.0, y2new = 0.0;
+			double y3 = 0.0, y3new = 0.0;
+			double k1 = 0.0, k2 = 0.0, k3 = 0.0, k4 = 0.0;
+			double delta = 0.0;
+			double temp = 0;
+
+			while (i >= 0)
+			{
+				if (AutoRegulated)
+				{
+					if (i % 10 == 0) 
+					{
+						if (Regulator)
+						{
+							temp = NextConsumption(y1);
+						}
+						else
+						{
+							temp = NextConsumptionPolinom(y1);
+						}
+					}
+				}
+				else
+				{
+					temp = input;
+				}
+
+				k1 = h * y2;
+				k2 = h * (y2 + k1 / 2);
+				k3 = h * (y2 + k2 / 2);
+				k4 = h * (y2 + k3);
+				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+				y1new = y1 + delta;
+
+				k1 = h * y3;
+				k2 = h * (y3 + k1 / 2);
+				k3 = h * (y3 + k2 / 2);
+				k4 = h * (y3 + k3);
+				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+				y2new = y2 + delta;
+
+				k1 = h * (1.45 * temp - y1 - 140 * y3 - 25 * y2) / 322;
+				k2 = h * (1.45 * temp - y1 - 140 * (y3 + k1 / 2) - 25 * y2) / 322;
+				k3 = h * (1.45 * temp - y1 - 140 * (y3 + k2 / 2) - 25 * y2) / 322;
+				k4 = h * (1.45 * temp - y1 - 140 * (y3 + k3) - 25 * y2) / 322;
+				delta = 1.0 / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
+				y3new = y3 + delta;
+
+				y1 = y1new;
+				y2 = y2new;
+				y3 = y3new;
+				i++;
+
+				if (i % 20 == 0)
+				{
+					SetSeries(i, y1);
+				}
+			}
+		}
+
 
 		public void OnPropertyChanged([CallerMemberName] string prop = "")
 		{

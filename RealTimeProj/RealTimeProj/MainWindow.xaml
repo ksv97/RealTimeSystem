@@ -35,6 +35,7 @@
         </TextBox>
         <Button Name="AddDesiredValue" Content="+" Width="50" Canvas.Left="592" Canvas.Top="130" Command="{ Binding AddDesiredValue }" />
         <Button Name="DecreaseDesiredValue" Content="-" Width="50" Canvas.Left="642" Canvas.Top="130" Command="{ Binding DecreaseDesiredValue }" />
+        <Button x:Name="button" Content="Start" Canvas.Left="592" Canvas.Top="267" Width="75"/>
 
     </Canvas>
 </Window>
