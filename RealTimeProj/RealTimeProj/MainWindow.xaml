@@ -1,0 +1,40 @@
+﻿<Window x:Class="RealTimeProj.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RealTimeProj"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
+    <Canvas Background="LightGray">
+        <TextBlock Text="График" FontSize="25" Canvas.Left="208" Canvas.Top="2">
+        </TextBlock>
+        <Border BorderBrush="Red" BorderThickness="2" Height="344" Width="572" Canvas.Left="10" Canvas.Top="40">
+            <oxy:PlotView Model="{Binding PlotModel}" />
+        </Border>
+        <TextBox x:Name="inputTextBox" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Left="79" Canvas.Top="387" Height="21" Width="83">
+
+        </TextBox>
+        <TextBlock Text="Вход" FontSize="15" Canvas.Left="24" Canvas.Top="388"/>
+        <Button Name="PlusButton" Content="+" Width="50" Canvas.Left="170" Canvas.Top="388" Command="{ Binding AddCommand }" />
+        <Button Name="MinusButton" Content="-" Width="50" Canvas.Left="230" Canvas.Top="388" Command="{ Binding DecreaseCommand }" />
+
+        <CheckBox Name="Autoregulation" Content="Авторегуляция" Canvas.Left="592" Canvas.Top="40" IsChecked="{Binding AutoRegulated, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel x:Name="stackPanel" Canvas.Left="610" Canvas.Top="60" >
+            <RadioButton GroupName="Regulator" Content="ПИ" IsChecked="{Binding Regulator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <RadioButton GroupName="Regulator" Content="Полиномиальный" IsChecked="{Binding RegulatorPoli, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <TextBlock Text="Желаемое значение" FontSize="15" Canvas.Left="592" Canvas.Top="90"/>
+        <TextBox x:Name="MeanValueTextBox" Text="{Binding DesiredValue, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Left="592" Canvas.Top="110" Height="21" Width="83">
+
+        </TextBox>
+        <Button Name="AddDesiredValue" Content="+" Width="50" Canvas.Left="592" Canvas.Top="130" Command="{ Binding AddDesiredValue }" />
+        <Button Name="DecreaseDesiredValue" Content="-" Width="50" Canvas.Left="642" Canvas.Top="130" Command="{ Binding DecreaseDesiredValue }" />
+
+    </Canvas>
+</Window>
