@@ -22,7 +22,8 @@ namespace RealTimeProj
     {
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent();			
         }
-    }
+
+	}
 }

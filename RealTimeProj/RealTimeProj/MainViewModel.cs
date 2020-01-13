@@ -69,7 +69,89 @@ namespace RealTimeProj
             }
         }
 
-        Sensor sensor = new Sensor();
+		#region Koefficient Properties
+		public double CurrentErrorKoef
+		{
+			get { return this.currentErrorKoef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(CurrentErrorKoef));
+			}
+		}
+
+		public double PrevError1Koef
+		{
+			get { return this.prevError1Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevError1Koef));
+			}
+		}
+
+		public double PrevError2Koef
+		{
+			get { return this.prevError2Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevError2Koef));
+			}
+		}
+
+		public double PrevError3Koef
+		{
+			get { return this.prevError3Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevError3Koef));
+			}
+		}
+
+		public double PrevConsumption1Koef
+		{
+			get { return this.prevConsumption1Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevConsumption1Koef));
+			}
+		}
+
+		public double PrevConsumption2Koef
+		{
+			get { return this.prevConsumption2Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevConsumption2Koef));
+			}
+		}
+
+		public double PrevConsumption3Koef
+		{
+			get { return this.prevConsumption3Koef; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(PrevConsumption3Koef));
+			}
+		}
+
+		public double Denominator
+		{
+			get { return this.denominator; }
+			set
+			{
+				this.currentErrorKoef = value;
+				OnPropertyChanged(nameof(Denominator));
+			}
+		}
+		#endregion
+
+		Sensor sensor = new Sensor();
         WorkingObject wo = new WorkingObject(1.2);
         Timer timer;
 
@@ -83,11 +165,11 @@ namespace RealTimeProj
 
 		private double currentErrorKoef = 2.75403;
 		private double prevError1Koef = -8.0317597;
-		private double prevError2Koef = 7.80274;
+		private double prevError2Koef = -7.80274;
 		private double prevError3Koef = -2.525015;
-		private double prevConsumption1Koef = 1.2364 * Math.Pow(10, 12);
+		private double prevConsumption1Koef = -1.2364 * Math.Pow(10, 12);
 		private double prevConsumption2Koef = -9.12279 * Math.Pow(10, 12);
-		private double prevConsumption3Koef = -3.241412;		
+		private double prevConsumption3Koef = 3.241412;		
 		private double denominator = -1.75403;
 
 		/* double next = (2.75403 * currentError 
@@ -231,10 +313,14 @@ namespace RealTimeProj
 		public CommandHandler DecreaseDesiredValue { get { return decreaseDesiredValue ?? (decreaseDesiredValue = new CommandHandler(obj => { DesiredValue--; })); } }
 
 		private CommandHandler decreaseCommand;
+		public CommandHandler DecreaseCommand { get { return decreaseCommand ?? (decreaseCommand = new CommandHandler(obj => { Input--; })); } }
+
+		private CommandHandler restartCommand;
+		public CommandHandler RestartCommand { get { return restartCommand ?? (restartCommand = new CommandHandler(obj => this.Restart())); } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public CommandHandler DecreaseCommand { get { return decreaseCommand ?? (decreaseCommand = new CommandHandler(obj => { Input--; })); } }
+		
 
 		public void OnPropertyChanged([CallerMemberName] string prop = "")
 		{
@@ -244,6 +330,16 @@ namespace RealTimeProj
 			}
 		}
 
+		public void Restart()
+		{
+			this.Input = 0;
+			sensor = new Sensor();
+			wo = new WorkingObject(1.2);
+			PlotModel = new PlotModel() { Title = "Function visualisation" };
+			this.PlotModel.Series.Add(new LineSeries());
+			var timerCallback = new TimerCallback(Tick);
+			timer = new Timer(timerCallback, new object(), 50, 1000);
+		}
 
 		private void EmptyStep(double currentObjectOutput)
         {

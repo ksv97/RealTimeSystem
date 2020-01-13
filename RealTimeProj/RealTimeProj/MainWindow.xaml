@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RealTimeProj"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="544.334" Width="912.182">
     <Window.DataContext>
         <local:MainViewModel />
     </Window.DataContext>
@@ -35,6 +35,15 @@
         </TextBox>
         <Button Name="AddDesiredValue" Content="+" Width="50" Canvas.Left="592" Canvas.Top="130" Command="{ Binding AddDesiredValue }" />
         <Button Name="DecreaseDesiredValue" Content="-" Width="50" Canvas.Left="642" Canvas.Top="130" Command="{ Binding DecreaseDesiredValue }" />
+        <TextBox x:Name="textBox1" Height="23" Canvas.Left="26" TextWrapping="Wrap" Text="{Binding CurrentErrorKoef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="409" Width="120"/>
+        <TextBox x:Name="textBox2" Height="23" Canvas.Left="171" TextWrapping="Wrap" Text="{Binding PrevError1Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="409" Width="120"/>
+        <TextBox x:Name="textBox3" Height="23" Canvas.Left="317" TextWrapping="Wrap" Text="{Binding PrevError2Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="409" Width="120"/>
+        <TextBox x:Name="textBox4" Height="23" Canvas.Left="462" TextWrapping="Wrap" Text="{Binding PrevError3Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="409" Width="120"/>
+        <TextBox x:Name="textBox5" Height="23" Canvas.Left="26" TextWrapping="Wrap" Text="{Binding PrevConsumption1Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="437" Width="120"/>
+        <TextBox x:Name="textBox6" Height="23" Canvas.Left="171" TextWrapping="Wrap" Text="{Binding PrevConsumption2Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="437" Width="120"/>
+        <TextBox x:Name="textBox7" Height="23" Canvas.Left="317" TextWrapping="Wrap" Text="{Binding PrevConsumption3Koef, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="437" Width="120"/>
+        <TextBox x:Name="textBox8" Height="23" Canvas.Left="462" TextWrapping="Wrap" Text="{Binding Denominator, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Canvas.Top="437" Width="120"/>
+        <Button x:Name="button" Content="Restart" Canvas.Left="294" Canvas.Top="479" Width="75"  Command="{ Binding RestartCommand }"/>
 
     </Canvas>
 </Window>
